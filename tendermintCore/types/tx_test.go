@@ -102,45 +102,39 @@ func TestValidTxProof(t *testing.T) {
 		"CtQFCpIDCiQvY29zbXdhc20ud2FzbS52MS5Nc2dFeGVjdXRlQ29udHJhY3QS6QIKK29yYWkxc2VucjBlOXpmbDRtd3B4YWhheXV2dWNhYWNtcTJxeTlkbWo0bG0SK29yYWkxMGxkZ3p1ZWQ2empwMG1rcXdzdjJtdXgzbWw1MGw5N2M3NHg4c2cajAJ7InNlbmQiOnsiYW1vdW50IjoiMTQwOTk5MDAwMDAwIiwiY29udHJhY3QiOiJvcmFpMTR3eTh4bmRobnZqbXg2emwyODY2eHF2czdmcXd2MmFyaGhycXE5IiwibXNnIjoiZXlKamIyNTJaWEowWDNKbGRtVnljMlVpT25zaVpuSnZiU0k2ZXlKdVlYUnBkbVZmZEc5clpXNGlPbnNpWkdWdWIyMGlPaUpwWW1NdlF6UTFPRUkwUTBNMFJqVTFPREV6T0RoQ09VRkRRalF3TnpjMFJrUkdRa05GUkVNM04wRTNSamREUkVaQ01URXlRalEyT1RjNU5FRkdPRFpETkVFMk9TSjlmWDE5In19CrwCCikvaWJjLmFwcGxpY2F0aW9ucy50cmFuc2Zlci52MS5Nc2dUcmFuc2ZlchKOAgoIdHJhbnNmZXISCmNoYW5uZWwtMjAaYApEaWJjL0M0NThCNENDNEY1NTgxMzg4QjlBQ0I0MDc3NEZERkJDRURDNzdBN0Y3Q0RGQjExMkI0Njk3OTRBRjg2QzRBNjkSGDE0MDk5OTAwMDAwMDAwMDAwMDAwMDAwMCIrb3JhaTFzZW5yMGU5emZsNG13cHhhaGF5dXZ1Y2FhY21xMnF5OWRtajRsbSosb3JhaWIxc2VucjBlOXpmbDRtd3B4YWhheXV2dWNhYWNtcTJxeTk2Nmtld2M4gLq3pLj+yqYXQi9vcmFpYjB4NzRDODIxMjliM0NEMTBkNGNFRjUwN2ZkMTM3ZkY4NDI5QzY1REQ3YxJnClEKRgofL2Nvc21vcy5jcnlwdG8uc2VjcDI1NmsxLlB1YktleRIjCiEDqrsYkjbYPhEEEDdODVA0QZHH38HdmjZv2IuyuYhpngMSBAoCCAEYwnwSEgoMCgRvcmFpEgQ1MDAxEICJehpAbGnGdb7lQxAVPY5VQnDVkJvGvy277zI8TRvqI0jlH4xc82AArPgDPuuCfviOt/9oVCm5H91d6ynDUrNJDiX6qQ==",
 	}
 
-	cases := []struct {
-		txs Txs
-	}{
-		{txHashToBytes(b64ToHex(txsHex...))},
-	}
+	txs := txHashToBytes(b64ToHex(txsHex...))
 
-	for h, tc := range cases {
-		txs := tc.txs
-		root := txs.Hash()
-		// make sure valid proof for every tx
-		for i := range txs {
-			tx := []byte(txs[i])
-			proof := txs.Proof(i)
-			assert.EqualValues(t, i, proof.Proof.Index, "%d: %d", h, i)
-			assert.EqualValues(t, len(txs), proof.Proof.Total, "%d: %d", h, i)
-			assert.EqualValues(t, root, proof.RootHash, "%d: %d", h, i)
-			assert.EqualValues(t, tx, proof.Data, "%d: %d", h, i)
-			assert.EqualValues(t, txs[i].Hash(), proof.Leaf(), "%d: %d", h, i)
-			assert.Nil(t, proof.Validate(root), "%d: %d", h, i)
-			assert.NotNil(t, proof.Validate([]byte("foobar")), "%d: %d", h, i)
+	root := txs.Hash()
+	// make sure valid proof for every tx
+	for i := range txs {
+		tx := []byte(txs[i])
+		proof := txs.Proof(i)
+		assert.EqualValues(t, i, proof.Proof.Index)
+		assert.EqualValues(t, len(txs), proof.Proof.Total)
+		assert.EqualValues(t, root, proof.RootHash)
+		assert.EqualValues(t, tx, proof.Data)
+		assert.EqualValues(t, txs[i].Hash(), proof.Leaf())
+		assert.Nil(t, proof.Validate(root))
+		assert.NotNil(t, proof.Validate([]byte("foobar")))
 
-			// read-write must also work
-			var (
-				p2  TxProof
-				pb2 tmproto.TxProof
-			)
-			pbProof := proof.ToProto()
-			bin, err := pbProof.Marshal()
-			require.NoError(t, err)
+		// read-write must also work
+		var (
+			p2  TxProof
+			pb2 tmproto.TxProof
+		)
+		pbProof := proof.ToProto()
+		bin, err := pbProof.Marshal()
+		require.NoError(t, err)
 
-			err = pb2.Unmarshal(bin)
-			require.NoError(t, err)
+		err = pb2.Unmarshal(bin)
+		require.NoError(t, err)
 
-			p2, err = TxProofFromProto(pb2)
-			if assert.Nil(t, err, "%d: %d: %+v", h, i, err) {
-				assert.Nil(t, p2.Validate(root), "%d: %d", h, i)
-			}
+		p2, err = TxProofFromProto(pb2)
+		if assert.Nil(t, err) {
+			assert.Nil(t, p2.Validate(root))
 		}
 	}
+
 }
 
 func TestTxProofUnchangable(t *testing.T) {
