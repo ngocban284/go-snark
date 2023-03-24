@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -246,10 +245,23 @@ func main() {
 				},
 				{
 					Address:          First(hex.DecodeString("oraivalcons1h404jv5mkcdk9fag22l0retun9pc6ryxmspf9m")),
+					PubKey:           ed25519.PubKey(First(base64.StdEncoding.DecodeString("zYJafIuidhsS9dIkl0u1empVdoTKShG3LvIG18fwif4="))),
+					VotingPower:      2,
+					ProposerPriority: -12,
+				},
+				{
+					Address:          First(hex.DecodeString("oraivalcons1uaadxrp3hw834u78uq877p780a99qgdm5lzyqc")),
 					PubKey:           ed25519.PubKey(First(base64.StdEncoding.DecodeString("0uDyc0WNK6VW98XHCYCXgyetK863YIyP31pikPp8jiU="))),
 					VotingPower:      2,
 					ProposerPriority: -12,
 				},
+			},
+			Proposer: &types.Validator{
+				Address: First(hex.DecodeString("6D47F746299FE13AAAED50BA5C9B65C720419B7A")),
+				PubKey:  ed25519.PubKey(First(base64.StdEncoding.DecodeString("jLunee++7+9tO0vVIBG59POGwkbShGiOWbtggTZMjMM="))),
+				// PubKey:           ed25519.PubKey{},
+				VotingPower:      200,
+				ProposerPriority: 84,
 			},
 		}
 	)
@@ -257,10 +269,6 @@ func main() {
 	// fmt.Print("pub key vals 1 ", vals.Validators[0].PubKey, "\n")
 	// fmt.Println(header)
 	// fmt.Println(newHeader)
-	untrustedHeaderHash := bytes.Join([][]byte{}, []byte{})
-	fmt.Println("untrustedHeaderHash", untrustedHeaderHash, "\n")
-	// decode to hex
-	fmt.Println("untrustedHeaderHash", hex.EncodeToString(untrustedHeaderHash), "\n")
 
 	err := light.VerifyAdjacent(&header, &newHeader, &vals, 1000*time.Hour, First(time.Parse(time.RFC3339, "2021-02-24T05:54:30Z")), maxClockDrift)
 
